@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دردشة فورية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-container">
+        <h2>أدخل اسمك للدخول</h2>
+        <input type="text" id="username" placeholder="أدخل اسمك...">
+        <button onclick="saveUsername()">دخول</button>
+    </div>
+
+    <div id="chat-container" style="display: none;">
+        <h3>مرحبًا، <span id="display-username"></span>!</h3>
+        <div class="chat-box" id="chat-box"></div>
+        <input type="text" id="message" placeholder="اكتب رسالة..." onkeypress="sendMessage(event)">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const chatBox = document.getElementById("chat-box");
+        const loginContainer = document.getElementById("login-container");
+        const chatContainer = document.getElementById("chat-container");
+        const usernameInput = document.getElementById("username");
+        const messageInput = document.getElementById("message");
+        const displayUsername = document.getElementById("display-username");
+
+        // التحقق من وجود اسم محفوظ
+        let username = localStorage.getItem("chat-username");
+
+        if (username) {
+            startChat(username);
+        }
+
+        function saveUsername() {
+            username = usernameInput.value.trim();
+            if (username) {
+                localStorage.setItem("chat-username", username);
+                startChat(username);
+            }
+        }
+
+        function startChat(username) {
+            loginContainer.style.display = "none";
+            chatContainer.style.display = "block";
+            displayUsername.textContent = username;
+        }
+
+        function sendMessage(event) {
+            if (event && event.key !== "Enter") return;
+            const message = messageInput.value.trim();
+
+            if (message) {
+                socket.emit("chat message", { username, message });
+                messageInput.value = "";
+            }
+        }
+
+        socket.on("chat message", (data) => {
+            const messageElement = document.createElement("p");
+            messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+</html>
+<button onclick="window.location.href='files.html'">📂 الانتقال إلى الملفات</button>
